@@ -1,0 +1,110 @@
+/* TEMA WARNA & RESET */
+:root {
+    --primary-green: #2E8B57; /* Warna utama hijau sekolah/kantin */
+    --hover-green: #246e45;
+    --light-bg: #F4F9F4; /* Latar belakang lembut */
+    --dark-text: #333333;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-bg) !important;
+    color: var(--dark-text);
+}
+
+/* Kustomisasi Identitas Warna Bootstrap */
+.custom-bg-green {
+    background-color: var(--primary-green) !important;
+}
+.custom-bg-green:hover {
+    background-color: var(--hover-green) !important;
+}
+.custom-text-green {
+    color: var(--primary-green) !important;
+}
+.btn-outline-success {
+    color: var(--primary-green);
+    border-color: var(--primary-green);
+}
+.btn-outline-success:hover {
+    background-color: var(--primary-green);
+    color: white;
+}
+
+/* Modifikasi Ukuran Kotak Login */
+.login-card {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+
+/* Kustomisasi Grid Produk agar rapi di HP */
+.product-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+}
+.product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(46, 139, 87, 0.2) !important;
+    border-color: var(--primary-green) !important;
+}
+
+/* Customisasi Nav Tabs Admin */
+#admin-tabs .nav-link {
+    border-radius: 8px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+#admin-tabs .nav-link.bg-secondary {
+    background-color: #6c757d !important;
+    opacity: 0.8;
+}
+#admin-tabs .nav-link.bg-secondary:hover {
+    opacity: 1;
+    border-color: var(--primary-green);
+    color: var(--dark-text) !important;
+}
+
+/* ---- VARIASI KOTAK PEMBATAS SCANNER KAMERA ---- */
+#reader__scan_region, #reader-admin__scan_region {
+    position: relative;
+}
+
+/* Mengubah warna kotak pembatas kamera menjadi hijau neon yang jelas */
+#reader__scan_region div[style*="border"], 
+#reader-admin__scan_region div[style*="border"] {
+    border: 4px solid #02cc72 !important; 
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(2, 204, 114, 0.7);
+}
+
+/* Animasi Halus saat pindah tab */
+.admin-tab-content {
+    animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Print Mode Khusus Struk Printer Thermal */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #print-area, #print-area * {
+        visibility: visible;
+    }
+    #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 58mm; /* Ukuran standar kertas kasir thermal */
+    }
+}
+
+/* Scrollbar cantik untuk menu tab di HP */
+#admin-tabs::-webkit-scrollbar { height: 6px; }
+#admin-tabs::-webkit-scrollbar-thumb { background: #2E8B57; border-radius: 10px; }
+#admin-tabs::-webkit-scrollbar-track { background: #e9ecef; }
