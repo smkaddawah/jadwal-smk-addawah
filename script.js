@@ -53,7 +53,6 @@ async function tampilkanGuru() {
     dashGuru.classList.remove('hidden');
     document.getElementById('guru-greeting').textContent = `Selamat datang, ${userData.nama}!`;
     
-    // Listener untuk deteksi real-time
     document.getElementById('select-kelas').addEventListener('change', updateSesiAvailability);
     document.getElementById('select-hari').addEventListener('change', updateSesiAvailability);
 
@@ -89,7 +88,6 @@ async function muatDataGuru() {
     }
 }
 
-// LOGIKA DROPDOWN MAPEL -> KELAS
 document.getElementById('select-mapel').addEventListener('change', (e) => {
     const kodeDipilih = e.target.value;
     const selectKelas = document.getElementById('select-kelas');
@@ -112,7 +110,6 @@ document.getElementById('select-mapel').addEventListener('change', (e) => {
     updateSesiAvailability();
 });
 
-// LOGIKA WARNA JAM TERISI/KOSONG
 function updateSesiAvailability() {
     const kelas = document.getElementById('select-kelas').value;
     const hari = document.getElementById('select-hari').value;
@@ -126,8 +123,8 @@ function updateSesiAvailability() {
         let customClass = "checkbox-item";
         
         if (kelas && hari) {
-            let bentrokKelas = allJadwalGuru.find(j => j.hari === hari && j.sesi == i && j.kelas === kelas);
-            let bentrokGuru = allJadwalGuru.find(j => j.hari === hari && j.sesi == i && j.username_guru === userData.username);
+            let bentrokKelas = allJadwalGuru.find(j => j.hari.trim().toLowerCase() === hari.trim().toLowerCase() && j.sesi == i && j.kelas.trim().toLowerCase() === kelas.trim().toLowerCase());
+            let bentrokGuru = allJadwalGuru.find(j => j.hari.trim().toLowerCase() === hari.trim().toLowerCase() && j.sesi == i && j.username_guru === userData.username);
             
             if (bentrokKelas) {
                 isDisabled = true;
@@ -149,7 +146,6 @@ function updateSesiAvailability() {
     }
 }
 
-// SIMPAN JADWAL GURU
 document.getElementById('booking-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn-submit');
@@ -169,7 +165,6 @@ document.getElementById('booking-form').addEventListener('submit', async (e) => 
         alert("Pilih minimal 1 jam sesi!"); return;
     }
 
-    // Ambil nama mapel dari data yang tersimpan di memory
     const mapelAktif = allMapelData.find(m => m.kode === kode_mapel);
     const nama_mapel = mapelAktif ? mapelAktif.nama_mapel : "";
 
@@ -214,21 +209,16 @@ document.getElementById('booking-form').addEventListener('submit', async (e) => 
 // ==========================================
 // 3. DASHBOARD ADMIN
 // ==========================================
-// ==========================================
-// FITUR GENERATE WARNA PASTEL OTOMATIS (Berdasarkan Teks Kode)
-// ==========================================
 function stringToColorPastel(str) {
     if(!str) return '#ffffff';
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    // Konversi hash ke RGB
     let r = (hash & 0xFF0000) >> 16;
     let g = (hash & 0x00FF00) >> 8;
     let b = hash & 0x0000FF;
     
-    // Campur dengan warna putih (255) agar warnanya pastel dan teks di dalamnya mudah dibaca
     r = Math.floor((r + 255) / 2);
     g = Math.floor((g + 255) / 2);
     b = Math.floor((b + 255) / 2);
@@ -236,9 +226,6 @@ function stringToColorPastel(str) {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
-// ==========================================
-// 3. DASHBOARD ADMIN
-// ==========================================
 async function tampilkanAdmin() {
     dashAdmin.classList.remove('hidden');
     try {
@@ -250,7 +237,7 @@ async function tampilkanAdmin() {
         const result = await response.json();
         
         susunMatriksAdmin(result);
-        susunRekapAdmin(result.summary); // Panggil fungsi susun rekap kanan
+        susunRekapAdmin(result.summary); 
     } catch (error) {
         alert("Gagal muat data admin");
     }
@@ -278,14 +265,24 @@ function susunMatriksAdmin(data) {
             row.innerHTML += `<td>${sesi}</td>`;
             
             data.kelas.forEach(kelasStr => {
-                let jadwalSel = data.jadwal.find(j => j.hari === hari && j.sesi == sesi && j.kelas === kelasStr);
+                // Perbaikan: gunakan lowercase dan trim untuk akurasi pencarian data
+                let jadwalSel = data.jadwal.find(j => 
+                    j.hari.trim().toLowerCase() === hari.trim().toLowerCase() && 
+                    j.sesi == sesi && 
+                    j.kelas.trim().toLowerCase() === kelasStr.trim().toLowerCase()
+                );
                 
                 if (jadwalSel) {
-                    // Generate warna unik berdasarkan KODE MAPEL
-                    let bgColor = stringToColorPastel(jadwalSel.kode_mapel);
-                    
-                    // Hanya Tampilkan KODE MAPEL dengan warna background
-                    row.innerHTML += `<td style="background-color: ${bgColor}; color: #111827; font-weight: bold; border: 1px solid #cbd5e1;">${jadwalSel.kode_mapel}</td>`;
+                    let kodeLower = jadwalSel.kode_mapel.toLowerCase();
+                    // Perbaikan: Deteksi Pembiasaan jika username nya adalah "-" atau teks mapel bernilai upacara/yasinan/tahlilan/panjang
+                    if (jadwalSel.username_guru === "-" || kodeLower === 'upacara' || kodeLower === 'yasinan' || kodeLower === 'tahlilan' || jadwalSel.kode_mapel.length > 5) {
+                        // WARNA PEMBIASAAN (Slate grey tua)
+                        row.innerHTML += `<td style="background-color: #475569; color: #ffffff; font-weight: bold; border: 1px solid #cbd5e1; font-size: 11px; text-align: center;">${jadwalSel.kode_mapel.toUpperCase()}</td>`;
+                    } else {
+                        // WARNA KODE MAPEL GURU
+                        let bgColor = stringToColorPastel(jadwalSel.kode_mapel);
+                        row.innerHTML += `<td style="background-color: ${bgColor}; color: #111827; font-weight: bold; border: 1px solid #cbd5e1; text-align: center;">${jadwalSel.kode_mapel}</td>`;
+                    }
                 } else {
                     row.innerHTML += `<td>-</td>`;
                 }
@@ -303,18 +300,15 @@ function susunRekapAdmin(summaryData) {
     const tbody = document.getElementById('rekap-body');
     tbody.innerHTML = '';
     
-    // Looping setiap data Guru
     summaryData.forEach(guru => {
         let totalMapel = guru.daftar_mapel.length;
         
-        // Looping setiap mata pelajaran yang dipegang oleh guru tersebut
         guru.daftar_mapel.forEach((mapelObj, index) => {
             let row = document.createElement('tr');
-            let bgColor = stringToColorPastel(mapelObj.kode); // Warna unik berdasarkan kode
+            let bgColor = stringToColorPastel(mapelObj.kode); 
             
             let isiMasingMasingKolom = '';
             
-            // JIKA BARIS PERTAMA GURU: Gambar kolom Nama Guru dengan teknik MERGE (rowspan)
             if (index === 0) {
                 isiMasingMasingKolom += `
                     <td rowspan="${totalMapel}" style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold; vertical-align: middle; background-color: #ffffff;">
@@ -323,7 +317,6 @@ function susunRekapAdmin(summaryData) {
                 `;
             }
             
-            // KOLOM TENGAH: Selalu muncul di setiap baris mapel (Kode, Nama Mapel, JP per Mapel)
             isiMasingMasingKolom += `
                 <td style="background-color: ${bgColor}; font-weight: bold; text-align: center; border: 1px solid #cbd5e1; padding: 6px;">
                     ${mapelObj.kode}
@@ -336,7 +329,6 @@ function susunRekapAdmin(summaryData) {
                 </td>
             `;
             
-            // JIKA BARIS PERTAMA GURU: Gambar kolom Jumlah JP keseluruhan dengan teknik MERGE (rowspan)
             if (index === 0) {
                 isiMasingMasingKolom += `
                     <td rowspan="${totalMapel}" style="text-align: center; font-weight: bold; border: 1px solid #cbd5e1; padding: 6px; vertical-align: middle; background-color: #f8fafc; color: #1e3a8a;">
@@ -351,26 +343,23 @@ function susunRekapAdmin(summaryData) {
     });
 }
 
-// FITUR AUTO-GENERATE ADMIN
 const btnAuto = document.getElementById('btn-auto-generate');
 const loadingContainer = document.getElementById('loading-container');
 const loadingBar = document.getElementById('loading-bar');
 const loadingText = document.getElementById('loading-text');
 
-// Elemen Laporan Baru
 const btnLaporan = document.getElementById('btn-laporan-gagal');
 const wadahLaporan = document.getElementById('laporan-gagal-container');
 const listLaporan = document.getElementById('list-laporan-gagal');
 
 if(btnAuto) {
     btnAuto.addEventListener('click', async () => {
-        const konfirmasi = confirm("Yakin ingin Auto-Generate jadwal?\n\nSistem akan otomatis mencarikan slot kosong untuk semua sisa jam guru yang belum terisi.");
+        const konfirmasi = confirm("Yakin ingin Auto-Generate jadwal?\n\nSistem akan mempertahankan jadwal manual guru yang sudah ada dan mencarikan slot kosong untuk sisa jam pelajaran lainnya.");
         if (!konfirmasi) return;
 
         btnAuto.textContent = "Menyusun... Harap Tunggu"; 
         btnAuto.disabled = true;
 
-        // Reset UI Laporan
         btnLaporan.classList.add('hidden');
         wadahLaporan.classList.add('hidden');
         listLaporan.innerHTML = '';
@@ -406,12 +395,9 @@ if(btnAuto) {
             setTimeout(() => {
                 let pesanAlert = result.pesan;
                 
-                // Jika ada laporan gagal, tampilkan tombolnya dan susun datanya
                 if (result.laporanGagal && result.laporanGagal.length > 0) {
                     pesanAlert += "\n\n⚠️ Terdapat jam yang gagal masuk. Silakan cek menu Laporan.";
-                    
                     btnLaporan.classList.remove('hidden');
-                    
                     result.laporanGagal.forEach(item => {
                         let li = document.createElement('li');
                         li.textContent = item;
@@ -437,9 +423,82 @@ if(btnAuto) {
         }
     });
 
-    // Fitur Buka/Tutup Kotak Laporan saat tombol kuning diklik
     btnLaporan.addEventListener('click', () => {
         wadahLaporan.classList.toggle('hidden');
+    });
+}
+
+const btnSuperAuto = document.getElementById('btn-super-auto');
+
+if (btnSuperAuto) {
+    btnSuperAuto.addEventListener('click', async () => {
+        const konfirmasi = confirm("YAKIN INGIN SUPER AUTO-GENERATE?\n\nSistem akan mengunci jadwal manual yang sudah ada, lalu mengocok ribuan kombinasi sisa jam pelajaran selama maksimal 5,5 Menit untuk mencari hasil 100% Sempurna.\n\nHarap sabar menunggu!");
+        if (!konfirmasi) return;
+
+        btnSuperAuto.textContent = "🚀 SEDANG MENCARI 100%... (Bisa 5 Menit)"; 
+        btnSuperAuto.disabled = true;
+        btnAuto.disabled = true; 
+
+        btnLaporan.classList.add('hidden');
+        wadahLaporan.classList.add('hidden');
+        listLaporan.innerHTML = '';
+        loadingContainer.classList.remove('hidden');
+        
+        let progress = 0;
+        loadingBar.style.width = '0%';
+        loadingText.textContent = 'Menganalisis Jutaan Pola... 0%';
+
+        const progressInterval = setInterval(() => {
+            if (progress < 95) {
+                progress += Math.random() * 2; 
+                loadingBar.style.width = progress + '%';
+                loadingText.textContent = 'Menganalisis Jutaan Pola... ' + Math.floor(progress) + '%';
+            }
+        }, 1000); 
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'superAutoGenerate' })
+            });
+            const result = await response.json();
+            
+            clearInterval(progressInterval);
+            loadingBar.style.width = '100%';
+            loadingText.textContent = '100% SELESAI!';
+            loadingText.style.color = '#10b981'; 
+            loadingBar.style.backgroundColor = '#10b981'; 
+            
+            setTimeout(() => {
+                let pesanAlert = result.pesan;
+                if (result.laporanGagal && result.laporanGagal.length > 0) {
+                    pesanAlert += "\n\n⚠️ Waktu habis (5.5 Menit). Sistem memberikan HASIL TERBAIK tanpa mengubah jadwal manual guru, namun masih ada sisa jam gagal karena bentrok struktural.";
+                    btnLaporan.classList.remove('hidden');
+                    result.laporanGagal.forEach(item => {
+                        let li = document.createElement('li');
+                        li.textContent = item;
+                        listLaporan.appendChild(li);
+                    });
+                } else {
+                    pesanAlert += "\n\n🎉 SUKSES BESAR! Sisa jam pelajaran berhasil terplot 100% Sempurna!";
+                }
+                
+                alert(pesanAlert);
+                tampilkanAdmin(); 
+                
+                loadingContainer.classList.add('hidden');
+            }, 500);
+
+        } catch (error) {
+            clearInterval(progressInterval);
+            alert("Gagal koneksi ke server.");
+            loadingContainer.classList.add('hidden');
+        } finally {
+            btnSuperAuto.textContent = "🚀 Super Auto-Generate (Target 100%)"; 
+            btnSuperAuto.disabled = false;
+            btnAuto.disabled = false;
+        }
     });
 }
 
