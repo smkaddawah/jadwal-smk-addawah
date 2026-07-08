@@ -303,18 +303,51 @@ function susunRekapAdmin(summaryData) {
     const tbody = document.getElementById('rekap-body');
     tbody.innerHTML = '';
     
-    // Susun data rekap ke dalam tabel sebelah kanan
-    summaryData.forEach(item => {
-        let bgColor = stringToColorPastel(item.kode);
-        tbody.innerHTML += `
-            <tr>
-                <td style="background-color: ${bgColor}; font-weight: bold; text-align: center; border: 1px solid #cbd5e1;">${item.kode}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 4px;">${item.mapel}</td>
-                <td style="border: 1px solid #cbd5e1; padding: 4px;">${item.nama_guru}</td>
-                <td style="text-align: center; border: 1px solid #cbd5e1;">${item.jp}</td>
-                <td style="text-align: center; font-weight: bold; border: 1px solid #cbd5e1;">${item.jumlah_jp}</td>
-            </tr>
-        `;
+    // Looping setiap data Guru
+    summaryData.forEach(guru => {
+        let totalMapel = guru.daftar_mapel.length;
+        
+        // Looping setiap mata pelajaran yang dipegang oleh guru tersebut
+        guru.daftar_mapel.forEach((mapelObj, index) => {
+            let row = document.createElement('tr');
+            let bgColor = stringToColorPastel(mapelObj.kode); // Warna unik berdasarkan kode
+            
+            let isiMasingMasingKolom = '';
+            
+            // JIKA BARIS PERTAMA GURU: Gambar kolom Nama Guru dengan teknik MERGE (rowspan)
+            if (index === 0) {
+                isiMasingMasingKolom += `
+                    <td rowspan="${totalMapel}" style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold; vertical-align: middle; background-color: #ffffff;">
+                        ${guru.nama_guru}
+                    </td>
+                `;
+            }
+            
+            // KOLOM TENGAH: Selalu muncul di setiap baris mapel (Kode, Nama Mapel, JP per Mapel)
+            isiMasingMasingKolom += `
+                <td style="background-color: ${bgColor}; font-weight: bold; text-align: center; border: 1px solid #cbd5e1; padding: 6px;">
+                    ${mapelObj.kode}
+                </td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px;">
+                    ${mapelObj.nama_mapel}
+                </td>
+                <td style="text-align: center; border: 1px solid #cbd5e1; padding: 6px;">
+                    ${mapelObj.jp_mapel}
+                </td>
+            `;
+            
+            // JIKA BARIS PERTAMA GURU: Gambar kolom Jumlah JP keseluruhan dengan teknik MERGE (rowspan)
+            if (index === 0) {
+                isiMasingMasingKolom += `
+                    <td rowspan="${totalMapel}" style="text-align: center; font-weight: bold; border: 1px solid #cbd5e1; padding: 6px; vertical-align: middle; background-color: #f8fafc; color: #1e3a8a;">
+                        ${guru.jumlah_jp}
+                    </td>
+                `;
+            }
+            
+            row.innerHTML = isiMasingMasingKolom;
+            tbody.appendChild(row);
+        });
     });
 }
 
