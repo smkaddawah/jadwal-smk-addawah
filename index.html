@@ -3,364 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem POS & E-Kantin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <title>Sistem Penjadwalan Sekolah</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #1f2937;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .btn-logout {
+            background-color: #ef4444;
+            float: right;
+        }
+        .btn-logout:hover {
+            background-color: #dc2626;
+        }
+        .btn-success {
+            background-color: #10b981;
+        }
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        /* --- Styling Checkbox Jam Guru --- */
+        .checkbox-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .checkbox-item {
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            background-color: #f9fafb;
+            display: flex;
+            align-items: center;
+        }
+        /* Merah: Kelas sudah diisi guru lain */
+        .disabled-penuh {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-color: #f87171;
+            text-decoration: line-through;
+        }
+        /* Kuning: Guru sudah mengajar di kelas lain pada jam tersebut */
+        .disabled-anda {
+            background-color: #fef08a;
+            color: #854d0e;
+            border-color: #facc15;
+            text-decoration: line-through;
+        }
+
+        /* --- Styling Tabel Admin --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            text-align: center;
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 8px;
+        }
+        th {
+            background-color: #16a34a;
+            color: white;
+        }
+        .day-row {
+            background-color: #f1f5f9;
+            font-weight: bold;
+        }
+        .filled {
+            background-color: #dcfce7;
+            color: #166534;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .day-end {
+            border-bottom: 3px solid #16a34a; /* Garis tebal pemisah hari */
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <div id="login-page" class="vh-100 d-flex justify-content-center align-items-center">
-        <div class="card shadow-sm p-4 text-center login-card" style="width: 100%; max-width: 400px; border-radius: 15px; border: none;">
-            <img src="https://i.ibb.co.com/Ngh0x6Rr/Addawah-300x.png" alt="Logo" class="img-fluid mb-4 px-3">
-            <h4 class="mb-3 custom-text-green fw-bold">Login Sistem E-Kantin</h4>
-            <form id="login-form">
-                <div class="mb-3"><input type="text" id="username" class="form-control form-control-lg bg-light" placeholder="Username" required></div>
-                <div class="mb-3"><input type="password" id="password" class="form-control form-control-lg bg-light" placeholder="Password" required></div>
-                <button type="submit" id="btn-login" class="btn custom-bg-green text-white btn-lg w-100 rounded-pill shadow-sm">Masuk</button>
-            </form>
-        </div>
+<div class="container">
+    
+    <div id="login-section">
+        <h2>Login Sistem Jadwal</h2>
+        <form id="login-form">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" id="btn-login">Masuk</button>
+            <p id="login-pesan" style="color: red; font-size: 14px; margin-top: 10px;"></p>
+        </form>
     </div>
 
-    <div id="app-page" class="d-none">
-        
-        <nav class="navbar navbar-expand-lg navbar-dark custom-bg-green shadow-sm mb-4">
-            <div class="container-fluid">
-                <a class="navbar-brand fw-bold" href="#">E-Kantin POS</a>
-                <div class="d-flex align-items-center">
-                    <span id="user-display" class="text-white fw-bold me-3">-</span>
-                    <button id="btn-logout" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold">Tutup Sesi / Shift</button>
-                </div>
-            </div>
-        </nav>
+    <div id="dashboard-guru" class="hidden">
+        <button class="btn-logout">Logout</button>
+        <h2 id="guru-greeting">Selamat datang, Guru!</h2>
+        <p>Silakan pilih jadwal mengajar Anda di bawah ini:</p>
 
-        <main class="container-fluid">
+        <form id="booking-form">
+            <div class="form-group">
+                <label>Mata Pelajaran:</label>
+                <select id="select-mapel" required>
+                    <option value="">-- Pilih Mapel --</option>
+                </select>
+            </div>
             
-            <div id="kasir-panel" class="d-none">
-                <div class="row g-4">
-                    <div class="col-lg-7">
-                        <div class="card shadow-sm border-0 h-100">
-                            <div class="card-body">
-                                <div class="d-flex gap-2 mb-3">
-                                    <button type="button" id="mode-fisik-kasir" class="btn custom-bg-green text-white flex-grow-1">Scanner USB</button>
-                                    <button type="button" id="mode-kamera-kasir" class="btn btn-outline-success flex-grow-1">Kamera HP</button>
-                                </div>
-                                <input type="text" id="barcode-input" class="form-control form-control-lg mb-3 bg-light" placeholder="Scan Barcode di sini..." autofocus>
-                                <div id="reader" class="d-none mx-auto mb-3" style="max-width: 300px;"></div>
-                                <h5 class="custom-text-green mb-3 border-bottom pb-2">Katalog Produk</h5>
-                                <div class="row g-2" id="product-list"><div class="col-12 text-center text-muted">Memuat produk...</div></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-5">
-                        <div class="card shadow-sm border-0 h-100">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="custom-text-green mb-3 border-bottom pb-2">Keranjang Belanja</h5>
-                                <div class="table-responsive flex-grow-1" style="max-height: 350px;">
-                                    <table class="table table-hover align-middle" id="cart-table">
-                                        <thead class="table-light sticky-top"><tr><th>Barang</th><th>Qty</th><th>Harga</th><th>Aksi</th></tr></thead>
-                                        <tbody id="cart-body"></tbody>
-                                    </table>
-                                </div>
-                                <div class="mt-3 pt-3 border-top bg-light p-3 rounded">
-                                    <div class="d-flex justify-content-between mb-2"><span>Subtotal:</span><span class="fw-bold">Rp <span id="subtotal-price">0</span></span></div>
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <span>Diskon (Rp):</span>
-                                        <input type="number" id="input-diskon" class="form-control form-control-sm text-end w-50" value="0" min="0">
-                                    </div>
-                                    <h2 class="text-end fw-bold custom-text-green mb-3">Total: Rp <span id="total-price">0</span></h2>
-                                    <div class="d-flex gap-2">
-                                        <button id="btn-pay-cash" class="btn custom-bg-green text-white btn-lg flex-grow-1 fw-bold">Bayar Tunai</button>
-                                        <button id="btn-pay-qr" class="btn btn-info text-white btn-lg flex-grow-1 fw-bold">Bayar QRIS</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="form-group">
+                <label>Kelas:</label>
+                <select id="select-kelas" required>
+                    <option value="">-- Pilih Kelas --</option>
+                </select>
             </div>
 
-            <div id="supplier-panel" class="d-none">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body">
-                        <h4 class="custom-text-green mb-3">Dasbor Supplier: <span id="supplier-name-display"></span></h4>
-                        <button id="btn-refresh-supplier" class="btn btn-outline-success mb-3">Segarkan Data</button>
-                        
-                        <div class="table-responsive">
-                            <table class="table table-hover table-bordered align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Nama Barang</th>
-                                        <th>Terjual (Belum Setor)</th>
-                                        <th>Sisa Stok Kantin</th>
-                                        <th>Estimasi Uang Anda</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="supplier-body"></tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="alert alert-success mt-3">
-                            <h6 class="m-0">
-                                <strong>Total Barang Laku:</strong> <span id="sup-qty">0</span> pcs <br>
-                                <strong>Estimasi Pendapatan:</strong> Rp <span id="sup-uang">0</span>
-                            </h6>
-                            <h5 class="custom-text-green mt-4 border-bottom pb-2">Riwayat Pencairan Uang / Retur</h5>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped">
-                                <thead class="table-secondary"><tr><th>ID Retur</th><th>Tgl & Waktu</th><th>Barang Laku</th><th>Uang Cair</th></tr></thead>
-                                <tbody id="supplier-riwayat-body"></tbody>
-                            </table>
-                        </div>
-                        </div>
-                        
-                    </div>
-                </div>
+            <div class="form-group">
+                <label>Hari:</label>
+                <select id="select-hari" required>
+                    <option value="">-- Pilih Hari --</option>
+                    <option value="Senin">Senin</option>
+                    <option value="Selasa">Selasa</option>
+                    <option value="Rabu">Rabu</option>
+                    <option value="Kamis">Kamis</option>
+                    <option value="Jumat">Jumat</option>
+                    <option value="Sabtu">Sabtu</option> <!-- OPSI SABTU DITAMBAHKAN -->
+                </select>
             </div>
 
-            <div id="admin-panel" class="d-none">
-                
-                <ul class="nav nav-pills mb-4 gap-2 flex-nowrap overflow-auto pb-2" id="admin-tabs" style="white-space: nowrap;">
-                    <li class="nav-item"><button class="nav-link active custom-bg-green text-white w-100" data-target="admin-dashboard">Dashboard</button></li>
-                    <li class="nav-item"><button class="nav-link bg-secondary text-white w-100" data-target="admin-daftar-barang">Daftar Barang</button></li>
-                    <li class="nav-item"><button class="nav-link bg-secondary text-white w-100" data-target="admin-stok">Input Produk</button></li>
-                    <li class="nav-item"><button class="nav-link bg-secondary text-white w-100" data-target="admin-laporan">Riwayat POS</button></li>
-                    <li class="nav-item"><button class="nav-link bg-secondary text-white w-100" data-target="admin-analitik">Laba Rugi</button></li>
-                    <li class="nav-item"><button class="nav-link bg-secondary text-white w-100" data-target="admin-mutasi">Kartu Stok</button></li>
-                    <li class="nav-item"><button class="nav-link bg-secondary text-white w-100" data-target="admin-laporan-detail">Supplier</button></li>
-                    <li class="nav-item"><button class="nav-link bg-secondary text-white w-100" data-target="admin-akun">Kelola Akun</button></li>
-                </ul>
-
-                <div id="admin-dashboard" class="admin-tab-content card shadow-sm border-0 mb-4">
-                    <div class="card-body">
-                        <h5 class="custom-text-green mb-4 border-bottom pb-2">Ringkasan Eksekutif</h5>
-                        <div class="row g-4">
-                            <div class="col-lg-8">
-                                <div class="border rounded p-3 bg-white h-100">
-                                    <h6 class="text-muted text-center">Tren Omset (Hari Aktif)</h6>
-                                    <canvas id="chartOmset" height="100"></canvas>
-                                </div>
-                            </div>
-                            <div class="col-lg-4">
-                                <div class="border rounded p-3 bg-white h-100">
-                                    <h6 class="text-muted text-center">Top 5 Produk Terlaris</h6>
-                                    <canvas id="chartBestSeller" height="200"></canvas>
-                                </div>
-                            </div>
-                        </div>
+            <div class="form-group">
+                <label>Pilih Jam ke- :</label>
+                <div id="checkbox-sesi" class="checkbox-container">
                     </div>
-                </div>
-
-                <div id="admin-laporan" class="admin-tab-content card shadow-sm border-0 mb-4 d-none">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-3"><h5 class="custom-text-green m-0">Log Transaksi Kasir</h5><button id="btn-export-excel" class="btn btn-success btn-sm">Export Data Excel</button></div>
-                        <div class="table-responsive" style="max-height: 500px;">
-                           <table class="table table-bordered table-hover align-middle" id="laporan-table">
-                                <thead class="table-dark sticky-top">
-                                    <tr><th>ID Trx</th><th>Waktu</th><th>Kasir</th><th>Metode</th><th>Barang</th><th>Qty</th><th>Harga</th><th>Subtotal</th><th>Aksi Admin</th></tr>
-                                </thead>
-                                <tbody id="laporan-body"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="admin-analitik" class="admin-tab-content card shadow-sm border-0 mb-4 d-none">
-                    <div class="card-body">
-                        <h5 class="custom-text-green mb-4 border-bottom pb-2">Laporan Laba/Rugi & Analisis Produk</h5>
-                        
-                        <ul class="nav nav-tabs mb-3">
-                            <li class="nav-item"><button class="nav-link active" id="btn-show-laba" onclick="toggleAnalitik('laba')">Rekap Laba Rugi Harian</button></li>
-                            <li class="nav-item"><button class="nav-link" id="btn-show-bestseller" onclick="toggleAnalitik('bestseller')">Detail Penjualan Per Produk</button></li>
-                        </ul>
-
-                        <div id="area-laba">
-                            <div class="table-responsive"><table class="table table-bordered align-middle">
-                                <thead class="table-light"><tr><th>Tanggal</th><th>Total Penjualan Kotor</th><th>Total Harga Modal</th><th>Diskon Diberikan</th><th>Laba Bersih</th></tr></thead>
-                                <tbody id="laba-body"></tbody>
-                            </table></div>
-                            <div class="alert alert-success"><h4 class="m-0">Total Laba Bersih Keseluruhan: Rp <span id="total-laba-bersih" class="fw-bold">0</span></h4></div>
-                        </div>
-
-                        <div id="area-bestseller" class="d-none">
-                            <div class="table-responsive"><table class="table table-hover align-middle">
-                                <thead class="table-light"><tr><th>Peringkat</th><th>Nama Produk</th><th>Total Terjual (Qty)</th><th>Estimasi Pemasukan</th></tr></thead>
-                                <tbody id="bestseller-body"></tbody>
-                            </table></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="admin-mutasi" class="admin-tab-content card shadow-sm border-0 mb-4 d-none">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-3"><h5 class="custom-text-green m-0">Riwayat Mutasi & Pergerakan Barang</h5></div>
-                        <div class="table-responsive" style="max-height: 500px;">
-                            <table class="table table-sm table-bordered align-middle">
-                                <thead class="table-secondary sticky-top"><tr><th>Waktu</th><th>Kode</th><th>Nama Barang</th><th>Jenis</th><th>Qty</th><th>Keterangan / Referensi</th></tr></thead>
-                                <tbody id="mutasi-body"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="admin-laporan-detail" class="admin-tab-content card shadow-sm border-0 mb-4 d-none">
-                    <div class="card-body">
-                        <div class="row g-2 mb-3"><div class="col-md-8"><select id="filter-pemilik" class="form-select"><option value="Semua">Semua Pemilik</option></select></div><div class="col-md-4"><button id="btn-hitung-titipan" class="btn custom-bg-green text-white w-100">Hitung Titipan</button></div></div>
-                        <div class="table-responsive"><table class="table table-bordered align-middle"><thead class="table-light"><tr><th>Nama Barang</th><th>Pemilik</th><th>Terjual</th><th>Sisa Stok</th><th>Total Uang</th></tr></thead><tbody id="laporan-detail-body"></tbody></table></div>
-                        <div class="alert alert-warning mt-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-                            <div><strong>Total Barang:</strong> <span id="titipan-qty">0</span> pcs <br><strong>Total Uang Supplier:</strong> Rp <span id="titipan-uang">0</span></div>
-                            <button id="btn-retur-titipan" class="btn btn-danger d-none">Selesaikan & Retur Pembayaran</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="admin-daftar-barang" class="admin-tab-content card shadow-sm border-0 mb-4 d-none">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="custom-text-green m-0">Katalog Produk Server</h5>
-                            <button id="btn-refresh-daftar" class="btn btn-sm btn-success">Refresh Data</button>
-                        </div>
-                        <div class="row g-3" id="katalog-admin-list"></div>
-                    </div>
-                </div>
-                <div id="admin-stok" class="admin-tab-content card shadow-sm border-0 mb-4 d-none">
-                    <div class="card-body">
-                        <div class="d-flex gap-2 mb-4">
-                            <button type="button" id="mode-fisik-admin" class="btn custom-bg-green text-white flex-grow-1">Scanner USB</button>
-                            <button type="button" id="mode-kamera-admin" class="btn btn-outline-success flex-grow-1">Kamera HP</button>
-                        </div>
-                        <div id="reader-admin" class="d-none mx-auto mb-3" style="max-width: 300px;"></div>
-                        
-                        <form id="form-barang" class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Kode Barang / Barcode</label>
-                                <div class="input-group">
-                                    <input type="text" id="input-kode" class="form-control bg-light" placeholder="Scan barcode kemasan..." required>
-                                    <button type="button" class="btn btn-warning" id="btn-generate-barcode">Auto Generate</button>
-                                </div>
-                                <div class="mt-2 text-center d-none" id="barcode-preview-area">
-                                    <canvas id="barcodeCanvas"></canvas>
-                                    <br><small class="text-muted">Klik kanan gambar untuk Simpan/Print Barcode</small>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label class="form-label">Nama Barang</label>
-                                <input type="text" id="input-nama" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Kategori</label>
-                                <select id="input-kategori" class="form-select" required>
-                                    <option value="Makanan">Makanan</option>
-                                    <option value="Minuman">Minuman</option>
-                                    <option value="ATK">Alat Tulis</option>
-                                    <option value="Lainnya">Lainnya</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Pemilik (Supplier)</label>
-                                <select id="input-pemilik" class="form-select" required>
-                                    <option value="Kantin">Kantin Pribadi</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Harga Beli (Modal)</label>
-                                <input type="number" id="input-beli" class="form-control" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Harga Jual</label>
-                                <input type="number" id="input-jual" class="form-control" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Stok Aktual</label>
-                                <input type="number" id="input-stok" class="form-control" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Min. Stok</label>
-                                <input type="number" id="input-minstok" class="form-control" required>
-                            </div>
-                            
-                            <div class="col-12 text-end mt-4">
-                                <button type="submit" id="btn-simpan-barang" class="btn custom-bg-green text-white px-5 py-2">Simpan Produk</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
+                <small style="display: block; margin-top: 10px; color: #4b5563;">
+                    <i>Keterangan: <span style="color:#ef4444; font-weight:bold;">Merah (Kelas Penuh)</span>, <span style="color:#ca8a04; font-weight:bold;">Kuning (Jadwal Anda Bentrok)</span></i>
+                </small>
             </div>
 
-            <div id="admin-akun" class="admin-tab-content card shadow-sm border-0 mb-4 d-none">
-                    <div class="card-body">
-                        <h5 class="custom-text-green mb-4 border-bottom pb-2">Kelola Pengguna Aplikasi</h5>
-                        <div class="row g-4">
-                            <div class="col-md-4">
-                                <form id="form-akun" class="bg-light p-3 rounded border">
-                                    <h6 class="fw-bold mb-3">Form Akun</h6>
-                                    <div class="mb-2"><label class="form-label">Username</label><input type="text" id="akun-username" class="form-control" required></div>
-                                    <div class="mb-2"><label class="form-label">Password</label><input type="text" id="akun-password" class="form-control" required></div>
-                                    <div class="mb-2"><label class="form-label">Role Akses</label>
-                                        <select id="akun-role" class="form-select" required>
-                                            <option value="Admin">Admin</option>
-                                            <option value="Kasir">Kasir</option>
-                                            <option value="Supplier">Supplier</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3"><label class="form-label">Nama Lengkap</label><input type="text" id="akun-nama" class="form-control" required></div>
-                                    <button type="submit" id="btn-simpan-akun" class="btn custom-bg-green text-white w-100">Simpan Akun</button>
-                                </form>
-                            </div>
-                            <div class="col-md-8">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-hover align-middle">
-                                        <thead class="table-dark"><tr><th>Username</th><th>Password</th><th>Role</th><th>Nama Lengkap</th><th>Aksi</th></tr></thead>
-                                        <tbody id="akun-body"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-        </main>
+            <button type="submit" id="btn-submit">Kirim Jadwal</button>
+        </form>
     </div>
 
-    <div class="modal fade" id="qrisModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-center p-4">
-                <h4 class="custom-text-green fw-bold mb-3">Scan QRIS</h4>
-                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" class="img-fluid w-50 mx-auto mb-3" alt="QRIS">
-                <h2 class="fw-bold mb-4">Total: Rp <span id="modal-total">0</span></h2>
-                <button id="btn-confirm-qr" class="btn custom-bg-green text-white btn-lg w-100 mb-2">Selesai & Cetak Struk</button>
-                <button class="btn btn-danger btn-lg w-100" data-bs-dismiss="modal">Batal</button>
+    <div id="dashboard-admin" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e5e7eb; margin-bottom: 15px; padding-bottom: 10px;">
+            <h2 style="border: none; margin: 0; padding: 0;">Dashboard Admin</h2>
+            <button class="btn-logout">Logout</button>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <button id="btn-auto-generate" style="background-color: #8b5cf6; margin-right: 10px; color: white; padding: 10px 15px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px;">
+                ⚡ Auto-Generate Jadwal
+            </button>
+            <button id="btn-download" class="btn-success" style="color: white; padding: 10px 15px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; margin-right: 10px;">
+                📥 Unduh Excel
+            </button>
+            
+            <!-- TOMBOL BARU UNTUK LAPORAN (Sembunyi by default) -->
+            <button id="btn-laporan-gagal" class="hidden" style="background-color: #f59e0b; color: white; padding: 10px 15px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px;">
+                ⚠️ Lihat Laporan Jam Gagal
+            </button>
+        </div>
+
+        <!-- WADAH LAPORAN BARU (Sembunyi by default) -->
+        <div id="laporan-gagal-container" class="hidden" style="margin-bottom: 20px; background: #fffbeb; padding: 15px; border-radius: 8px; border: 1px solid #fcd34d;">
+            <h3 style="margin-top:0; color: #b45309;">Daftar Sisa Jam yang Gagal Masuk</h3>
+            <p style="font-size: 14px; color: #92400e;">Berikut adalah jam pelajaran yang tidak mendapatkan slot karena semua kemungkinan telah bentrok. Silakan diinput secara manual:</p>
+            <ul id="list-laporan-gagal" style="color: #92400e; font-size: 14px; line-height: 1.5; margin-bottom: 0;"></ul>
+        </div>
+
+        <!-- ELEMEN LOADING BAR (Biarkan seperti yang sebelumnya) -->
+        <div id="loading-container" class="hidden" style="margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-weight: bold; color: #475569; font-size: 14px;">Memproses algoritma penjadwalan...</span>
+                <span id="loading-text" style="font-weight: bold; color: #8b5cf6; font-size: 14px;">0%</span>
             </div>
+            <div style="width: 100%; background-color: #e2e8f0; border-radius: 999px; height: 12px; overflow: hidden;">
+                <div id="loading-bar" style="width: 0%; background-color: #8b5cf6; height: 100%; border-radius: 999px; transition: width 0.3s ease;"></div>
+            </div>
+        </div>
+
+        <div id="loading-container" class="hidden" style="margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-weight: bold; color: #475569; font-size: 14px;">Memproses algoritma penjadwalan...</span>
+                <span id="loading-text" style="font-weight: bold; color: #8b5cf6; font-size: 14px;">0%</span>
+            </div>
+            <div style="width: 100%; background-color: #e2e8f0; border-radius: 999px; height: 12px; overflow: hidden;">
+                <div id="loading-bar" style="width: 0%; background-color: #8b5cf6; height: 100%; border-radius: 999px; transition: width 0.3s ease;"></div>
+            </div>
+        </div>
+
+       <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+            
+            <div style="flex: 1 1 65%; overflow-x: auto; background: white; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px;">
+                <table id="tabel-matriks" style="width: 100%; border-collapse: collapse; text-align: center;">
+                    <thead>
+                        <tr id="matriks-header"></tr>
+                    </thead>
+                    <tbody id="matriks-body"></tbody>
+                </table>
+            </div>
+
+            <div style="flex: 1 1 30%; overflow-x: auto; background: white; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px;">
+                <h3 style="margin-top: 0; font-size: 16px; color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px;">Rekap Keterangan Guru</h3>
+                <table id="tabel-rekap" style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                    <thead>
+                        <tr style="background-color: #3b82f6; color: white;">
+                            <th style="padding: 6px; border: 1px solid #cbd5e1;">Kode</th>
+                            <th style="padding: 6px; border: 1px solid #cbd5e1;">Mata Pelajaran</th>
+                            <th style="padding: 6px; border: 1px solid #cbd5e1;">Nama Guru</th>
+                            <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">JP</th>
+                            <th style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">Jml JP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rekap-body">
+                        </tbody>
+                </table>
+            </div>
+            
         </div>
     </div>
 
-    <div id="print-area" class="d-none">
-        <div style="width: 58mm; padding: 10px; font-family: monospace; color: black;">
-            <h3 style="text-align: center; margin: 0;">E-KANTIN ADDAWAH</h3>
-            <p style="text-align: center; font-size: 12px; margin: 5px 0;">Tgl: <span id="struk-tanggal"></span><br>Trx: <span id="struk-id"></span></p>
-            <hr style="border-top: 1px dashed black;">
-            <table style="width: 100%; font-size: 12px;" id="struk-table"><tbody id="struk-body"></tbody></table>
-            <hr style="border-top: 1px dashed black;">
-            <div id="struk-diskon-area" class="d-none"><p style="text-align: right; margin: 2px 0; font-size: 12px;">Diskon: -Rp <span id="struk-diskon">0</span></p></div>
-            <h4 style="text-align: right; margin: 5px 0;">TOTAL: Rp <span id="struk-total">0</span></h4>
-            <div id="struk-tunai-area">
-                <p style="text-align: right; margin: 2px 0; font-size: 12px;">Tunai: Rp <span id="struk-bayar">0</span></p>
-                <p style="text-align: right; margin: 2px 0; font-size: 12px;">Kembali: Rp <span id="struk-kembali">0</span></p>
-            </div>
-            <p style="text-align: center; font-size: 10px; margin-top: 10px;">Terima Kasih</p>
-        </div>
-    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
