@@ -209,21 +209,23 @@ document.getElementById('booking-form').addEventListener('submit', async (e) => 
 // ==========================================
 // 3. DASHBOARD ADMIN
 // ==========================================
+// ==========================================
+// FITUR GENERATE WARNA PASTEL SUPER KONTRAS (HSL GOLDEN RATIO WHEEL)
+// ==========================================
 function stringToColorPastel(str) {
     if(!str) return '#ffffff';
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    let r = (hash & 0xFF0000) >> 16;
-    let g = (hash & 0x00FF00) >> 8;
-    let b = hash & 0x0000FF;
     
-    r = Math.floor((r + 255) / 2);
-    g = Math.floor((g + 255) / 2);
-    b = Math.floor((b + 255) / 2);
+    // Lompat spektrum warna sejauh 137.5 derajat (Sudut Emas / Golden Ratio) setiap pergantian hash teks.
+    // Menghilangkan masalah warna kembar/mirip antar mata pelajaran yang berdekatan.
+    let hue = Math.abs(hash * 137.5) % 360;
     
-    return `rgb(${r}, ${g}, ${b})`;
+    // Saturation 80% (Warna hidup dan tegas, tidak pudar)
+    // Lightness 78% (Cukup terang sebagai background agar teks hitam di depannya sangat jelas terlihat)
+    return `hsl(${hue}, 80%, 78%)`;
 }
 
 async function tampilkanAdmin() {
